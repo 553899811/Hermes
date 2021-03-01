@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.newbiegroup</groupId>
+    <artifactId>hermes-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>${revision}</version>
+
+    <inceptionYear>2020</inceptionYear>
+    <modules>
+        <module>hermes-core</module>
+        <module>hermes-example</module>
+        <module>hermes-rpc</module>
+        <module>hermes-dependencies-bom</module>
+        <module>hermes-rpc</module>
+        <module>hermes-register</module>
+    </modules>
+
+    <properties>
+        <java_source_version>1.8</java_source_version>
+        <java_target_version>1.8</java_target_version>
+        <file_encoding>UTF-8</file_encoding>
+        <revision>1.0.0-SNAPSHOT</revision>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <artifactId>hermes-dependencies-bom</artifactId>
+                <groupId>com.newbiegroup</groupId>
+                <version>${project.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

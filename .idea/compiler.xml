@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="hermes-core-common" />
+        <module name="hermes-example" />
+        <module name="hermes-register-zookeeper" />
+        <module name="hermes-core-domain" />
+        <module name="hermes-rpc-hermes" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="Hermes" target="1.8" />
+      <module name="hermes-core" target="1.8" />
+      <module name="hermes-core-common" target="1.8" />
+      <module name="hermes-core-domain" target="1.8" />
+      <module name="hermes-dependencies-bom" target="1.8" />
+      <module name="hermes-example" target="1.8" />
+      <module name="hermes-register" target="1.8" />
+      <module name="hermes-register-zookeeper" target="1.8" />
+      <module name="hermes-rpc" target="1.8" />
+      <module name="hermes-rpc-hermes" target="1.8" />
+      <module name="hermes-worker" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
