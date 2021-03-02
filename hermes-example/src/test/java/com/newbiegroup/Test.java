@@ -19,6 +19,7 @@ public class Test {
             connection=DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/franchisee_settlement","root","123456");
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            System.out.println("Hello World!");
         }
         System.out.println(connection.getClass().getClassLoader());
         System.out.println(Thread.currentThread().getContextClassLoader());
