@@ -17,6 +17,7 @@
         <module>hermes-dependencies-bom</module>
         <module>hermes-rpc</module>
         <module>hermes-register</module>
+        <module>hermes-remoting</module>
     </modules>
 
     <properties>

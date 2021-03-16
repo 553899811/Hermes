@@ -10,6 +10,7 @@
       <module fileurl="file://$PROJECT_DIR$/hermes-example/hermes-example.iml" filepath="$PROJECT_DIR$/hermes-example/hermes-example.iml" />
       <module fileurl="file://$PROJECT_DIR$/hermes-register/hermes-register.iml" filepath="$PROJECT_DIR$/hermes-register/hermes-register.iml" />
       <module fileurl="file://$PROJECT_DIR$/hermes-register/hermes-register-zookeeper/hermes-register-zookeeper.iml" filepath="$PROJECT_DIR$/hermes-register/hermes-register-zookeeper/hermes-register-zookeeper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hermes-remoting/hermes-remoting.iml" filepath="$PROJECT_DIR$/hermes-remoting/hermes-remoting.iml" />
       <module fileurl="file://$PROJECT_DIR$/hermes-rpc/hermes-rpc.iml" filepath="$PROJECT_DIR$/hermes-rpc/hermes-rpc.iml" />
       <module fileurl="file://$PROJECT_DIR$/hermes-rpc/hermes-rpc-hermes/hermes-rpc-hermes.iml" filepath="$PROJECT_DIR$/hermes-rpc/hermes-rpc-hermes/hermes-rpc-hermes.iml" />
     </modules>
