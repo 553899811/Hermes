@@ -27,7 +27,6 @@
         <netty.all.version>4.1.52.Final</netty.all.version>
         <fastjson.version>1.2.73</fastjson.version>
         <guava.version>29.0-jre</guava.version>
-        <hermes.version>1.0.0-SNAPSHOT</hermes.version>
     </properties>
 
     <dependencyManagement>
@@ -35,7 +34,7 @@
             <dependency>
                 <groupId>com.newbiegroup</groupId>
                 <artifactId>hermes-core-common</artifactId>
-                <version>${hermes.version}</version>
+                <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
