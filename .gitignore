@@ -1,0 +1,17 @@
+# Created by .ignore support plugin (hsz.mobi)
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+com
+target
+gen
+.idea/libraries/Maven__com_google_code_findbugs_jsr305_3_0_2.xml
+.idea/libraries/Maven__com_google_errorprone_error_prone_annotations_2_3_4.xml
+.idea/libraries/Maven__com_google_guava_failureaccess_1_0_1.xml
+.idea/libraries/Maven__com_google_guava_listenablefuture_9999_0_empty_to_avoid_conflict_with_guava.xml
+.idea/libraries/Maven__com_google_j2objc_j2objc_annotations_1_3.xml
+.idea/libraries/Maven__org_checkerframework_checker_qual_2_11_1.xml
