@@ -1,10 +1,13 @@
 package com.newbiegroup.hermes.example.serialization;
 
 import com.newbiegroup.hermes.example.rpc.Serialization.Student;
+import com.newbiegroup.hermes.example.rpc.Singletons.Singleton;
 import org.junit.Test;
 
-import java.io.*;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * <p>ClassName:  </p>
@@ -27,13 +30,29 @@ public class TestSerialization {
         oos.close();
     }
 
-
     @Test
-    public void testRead() throws Exception {
-        ObjectInputStream ois = new ObjectInputStream(new FileInputStream("d:\\stu.dat"));
-         List<Student> list=(List<Student>) ois.readObject();
-        for (Student student : list) {
-            System.out.println(student.getName());
-        }
+    public void testSingeton() throws Exception {
+        //获取instance 对象
+        Singleton instance = Singleton.getInstance();
+        // 获取文件输出流
+        FileOutputStream fileOutputStream = new FileOutputStream("d:\\Test.txt");
+        // 获取对象输出流
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+        // 输出对象
+        objectOutputStream.writeObject(instance);
+
+        // 关闭资源
+        objectOutputStream.close();
+        fileOutputStream.close();
+
+        // 获取对象输入流
+        ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("d:\\Test.txt"));
+
+        // 读取对象
+        Object object = objectInputStream.readObject();
+
+        // 判断两个对象是否相等，返回true/false
+        System.out.println(instance == object);
     }
+
 }

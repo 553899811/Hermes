@@ -1,5 +1,6 @@
 package com.newbiegroup.hermes.example.rpc.Serialization;
 
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 
 /**

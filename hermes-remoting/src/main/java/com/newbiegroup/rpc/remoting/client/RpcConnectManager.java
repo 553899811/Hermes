@@ -3,6 +3,8 @@ package com.newbiegroup.rpc.remoting.client;
 import com.sun.org.slf4j.internal.Logger;
 import com.sun.org.slf4j.internal.LoggerFactory;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -11,14 +13,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * <p>ClassName: RPC连接管理器 </p>
@@ -39,6 +39,10 @@ public class RpcConnectManager {
      */
     private Map<InetSocketAddress, RpcClientHandler> connectedHandlerMap = new ConcurrentHashMap<>();
 
+    /**
+     * 所有连接成功的地址 所对应的任务执行器列表;
+     */
+    private CopyOnWriteArrayList<RpcClientHandler> connectedHandleList = new CopyOnWriteArrayList<>();
     /**
      * 用于异步的提交连接请求的线程池
      */
@@ -111,8 +115,50 @@ public class RpcConnectManager {
         });
     }
 
-    private void connect(final Bootstrap b,InetSocketAddress remotePeer){
+    private void connect(final Bootstrap b, InetSocketAddress remotePeer) {
+        //1 .建立连接
+        final ChannelFuture channelFuture = b.connect(remotePeer);
+        //2.连接失败的时候添加监听，清除资源后进行释放发起重连操作
+        channelFuture.channel().closeFuture().addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                future.channel().eventLoop().schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        clearConnected();
+                        //资源释放后 重新连接;
+                        connect(b, remotePeer);
+                    }
+                }, 3, TimeUnit.SECONDS);
+            }
+        });
+        //3.连接成功的时候添加监听，把我们的新连接放入到缓存中;
+        channelFuture.addListener(new ChannelFutureListener() {
+            @Override
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if (future.isSuccess()) {
 
+                }
+            }
+        });
+    }
+
+    /**
+     * 连接失败时，及时的释放资源，清空缓存;
+     * 先删除所有的connectedHandlerMap中的数据
+     * 然后再清空connectedHandleList中的数据;
+     */
+    private void clearConnected() {
+        for (RpcClientHandler rpcClientHandler : connectedHandleList) {
+            //通过RpcClientHandler找到具体的远程地址，从connectedHandlerMap中移除;
+            SocketAddress remotePeer = rpcClientHandler.getRemotePeer();
+            RpcClientHandler handler = connectedHandlerMap.get(remotePeer);
+            if (handler != null) {
+                handler.close();
+                connectedHandlerMap.remove(remotePeer);
+            }
+        }
+        connectedHandleList.clear();
     }
 
     public static void main(String[] args) {
