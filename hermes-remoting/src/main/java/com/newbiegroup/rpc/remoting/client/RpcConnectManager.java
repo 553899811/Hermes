@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * <p>ClassName: RPC连接管理器 </p>
@@ -42,13 +44,22 @@ public class RpcConnectManager {
     /**
      * 所有连接成功的地址 所对应的任务执行器列表;
      */
-    private CopyOnWriteArrayList<RpcClientHandler> connectedHandleList = new CopyOnWriteArrayList<>();
+    private CopyOnWriteArrayList<RpcClientHandler> connectedHandlerList = new CopyOnWriteArrayList<>();
     /**
      * 用于异步的提交连接请求的线程池
      */
     private ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(1 << 16));
 
     private EventLoopGroup eventLoopGroup = new NioEventLoopGroup(4);
+
+    private ReentrantLock connectedLock = new ReentrantLock();
+
+    private Condition connectedCondition = connectedLock.newCondition();
+
+
+    private long connectedTimeOutMills = 6000;
+
+    private volatile boolean isRunning = true;
 
     private RpcConnectManager() {
 
@@ -72,10 +83,13 @@ public class RpcConnectManager {
     /**
      * @param allServerAddress
      * @desc 更新地址缓存信息，并异步发起链接
+     * 192.168.11.111:8765,192.168.11.112:8765,192.168.11.113:8765
      */
     public void updateConnectedServer(List<String> allServerAddress) {
         if (CollectionUtils.isEmpty(allServerAddress)) {
             log.error("no available ServerAddress");
+            //清楚所有的缓存信息;
+            clearConnected();
             return;
         }
 
@@ -92,12 +106,23 @@ public class RpcConnectManager {
         }
         // 2. 调用建立连接方法，发起远程连接操作
         for (InetSocketAddress serverNodeAddress : newAllInetSocketAddress) {
-            if (!connectedHandlerMap.keySet().contains(serverNodeAddress)) {
+            if (!connectedHandlerMap.containsKey(serverNodeAddress)) {
                 connectAsync(serverNodeAddress);
             }
         }
         // 3. 如果allServerAddress 列表里不存在的链接地址，那么我们需要从缓存中移除掉
-
+        for (int i = 0; i < connectedHandlerList.size(); i++) {
+            RpcClientHandler rpcClientHandler = connectedHandlerList.get(i);
+            SocketAddress remotePeer = rpcClientHandler.getRemotePeer();
+            if (!newAllInetSocketAddress.contains(remotePeer)) {
+                RpcClientHandler handler = connectedHandlerMap.get(remotePeer);
+                if (handler != null) {
+                    handler.close();//释放资源
+                    connectedHandlerMap.remove(remotePeer);
+                }
+                connectedHandlerList.remove(rpcClientHandler);
+            }
+        }
     }
 
     private void connectAsync(InetSocketAddress remotePeer) {
@@ -122,13 +147,10 @@ public class RpcConnectManager {
         channelFuture.channel().closeFuture().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                future.channel().eventLoop().schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        clearConnected();
-                        //资源释放后 重新连接;
-                        connect(b, remotePeer);
-                    }
+                future.channel().eventLoop().schedule(() -> {
+                    clearConnected();
+                    //资源释放后 重新连接;
+                    connect(b, remotePeer);
                 }, 3, TimeUnit.SECONDS);
             }
         });
@@ -137,10 +159,72 @@ public class RpcConnectManager {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
-
+                    RpcClientHandler handler = future.channel().pipeline().get(RpcClientHandler.class);
+                    addHandler(handler);
                 }
             }
         });
+    }
+
+    /**
+     * 添加RpcClientHandler到指定的缓存中
+     * connectedHandlerMap && connectedHandlerList
+     *
+     * @param handler
+     */
+    private void addHandler(RpcClientHandler handler) {
+        connectedHandlerList.add(handler);
+        InetSocketAddress remotePeer = (InetSocketAddress) handler.getRemotePeer();
+        connectedHandlerMap.put(remotePeer, handler);
+        //signalAvailableHandler 唤醒可用的业务执行器
+        signalAvailableHandler();
+    }
+
+    /**
+     * 唤醒另外一端的线程(阻塞的状态中) 告知有新连接接入
+     */
+    private void signalAvailableHandler() {
+        connectedLock.lock();
+        try {
+            connectedCondition.notifyAll();
+        } finally {
+            connectedLock.unlock();
+        }
+    }
+
+    /**
+     * 等待新连接接入通知方法
+     *
+     * @return
+     */
+    private boolean waitingForAvailableHandler() throws InterruptedException {
+        connectedLock.lock();
+        try {
+            return connectedCondition.await(this.connectedTimeOutMills, TimeUnit.SECONDS);
+        } finally {
+
+        }
+    }
+
+    /**
+     * 选择一个实际的业务处理器
+     *
+     * @return
+     */
+    private RpcClientHandler chooseHandler() {
+        List<RpcClientHandler> hanlders = (CopyOnWriteArrayList<RpcClientHandler>) this.connectedHandlerList.clone();
+        int size = hanlders.size();
+        while (isRunning && size <= 0) {
+            try {
+                boolean available = waitingForAvailableHandler();
+                if(available){
+
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     /**
@@ -149,16 +233,17 @@ public class RpcConnectManager {
      * 然后再清空connectedHandleList中的数据;
      */
     private void clearConnected() {
-        for (RpcClientHandler rpcClientHandler : connectedHandleList) {
+        for (RpcClientHandler rpcClientHandler : connectedHandlerList) {
             //通过RpcClientHandler找到具体的远程地址，从connectedHandlerMap中移除;
             SocketAddress remotePeer = rpcClientHandler.getRemotePeer();
             RpcClientHandler handler = connectedHandlerMap.get(remotePeer);
             if (handler != null) {
+                //关闭连接;
                 handler.close();
                 connectedHandlerMap.remove(remotePeer);
             }
         }
-        connectedHandleList.clear();
+        connectedHandlerList.clear();
     }
 
     public static void main(String[] args) {

@@ -1,6 +1,5 @@
 package com.newbiegroup.rpc.remoting.client;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
@@ -16,6 +15,8 @@ import io.netty.channel.socket.SocketChannel;
 public class RpcClientInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
+        //编解码的handler
+        //实际的业务处理器RpcClientHandler
 
     }
 }
