@@ -11,13 +11,12 @@
 
     <inceptionYear>2020</inceptionYear>
     <modules>
-        <module>hermes-core</module>
         <module>hermes-example</module>
         <module>hermes-rpc</module>
         <module>hermes-dependencies-bom</module>
-        <module>hermes-rpc</module>
-        <module>hermes-register</module>
         <module>hermes-remoting</module>
+        <module>hermes-serialization</module>
+        <module>hermes-common</module>
     </modules>
 
     <properties>

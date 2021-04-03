@@ -3,14 +3,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>hermes-core</artifactId>
+        <artifactId>hermes-parent</artifactId>
         <groupId>com.newbiegroup</groupId>
         <version>${revision}</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
+    <packaging>jar</packaging>
+    <artifactId>hermes-common</artifactId>
+    <name>${project.artifactId}</name>
 
-    <artifactId>hermes-core-common</artifactId>
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -31,6 +38,10 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
         </dependency>
     </dependencies>
 

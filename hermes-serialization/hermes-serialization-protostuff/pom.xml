@@ -3,32 +3,42 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>hermes-parent</artifactId>
+        <artifactId>hermes-serialization</artifactId>
         <groupId>com.newbiegroup</groupId>
         <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>hermes-remoting</artifactId>
+    <artifactId>hermes-serialization-protostuff</artifactId>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
+        <protostuff.version>1.7.2</protostuff.version>
+        <objenesis.version>3.1</objenesis.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.newbiegroup</groupId>
-            <artifactId>hermes-serialization-protostuff</artifactId>
+            <artifactId>hermes-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-core</artifactId>
+            <version>${protostuff.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
+            <groupId>io.protostuff</groupId>
+            <artifactId>protostuff-runtime</artifactId>
+            <version>${protostuff.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.objenesis</groupId>
+            <artifactId>objenesis</artifactId>
+            <version>${objenesis.version}</version>
         </dependency>
     </dependencies>
 

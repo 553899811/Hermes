@@ -15,8 +15,9 @@
     <dependencies>
         <dependency>
             <groupId>com.newbiegroup</groupId>
-            <artifactId>hermes-core-common</artifactId>
+            <artifactId>hermes-common</artifactId>
             <version>${revision}</version>
         </dependency>
+
     </dependencies>
 </project>

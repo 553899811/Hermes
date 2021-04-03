@@ -17,6 +17,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
                     <source>8</source>
                     <target>8</target>
@@ -28,7 +29,7 @@
     <dependencies>
     <dependency>
         <groupId>com.newbiegroup</groupId>
-        <artifactId>hermes-core-common</artifactId>
+        <artifactId>hermes-common</artifactId>
         <version>${revision}</version>
     </dependency>
 </dependencies>

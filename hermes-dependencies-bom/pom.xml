@@ -33,7 +33,7 @@
         <dependencies>
             <dependency>
                 <groupId>com.newbiegroup</groupId>
-                <artifactId>hermes-core-common</artifactId>
+                <artifactId>hermes-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -93,6 +93,22 @@
                 <artifactId>junit</artifactId>
                 <version>4.13</version>
             </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
+            <!--配合lombok-->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-log4j12</artifactId>
+                <version>1.7.25</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.objenesis/objenesis -->
+            <dependency>
+                <groupId>org.objenesis</groupId>
+                <artifactId>objenesis</artifactId>
+                <version>3.1</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 

@@ -1,7 +1,5 @@
 package com.newbiegroup.rpc.remoting.client;
 
-import com.sun.org.slf4j.internal.Logger;
-import com.sun.org.slf4j.internal.LoggerFactory;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -9,6 +7,9 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -19,11 +20,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * <p>ClassName: RPC连接管理器 </p>
+ * <p>ClassName: RPC连接管理器
+ * 核心作用：服务于RpcClient;
+ * 核心功能:
  * <p>Description: </p>
  * <p>Company: </p>
  *
@@ -31,15 +35,19 @@ import java.util.concurrent.locks.ReentrantLock;
  * @version 1.0.0
  * @date 2021/3/17 0:08
  */
+@Slf4j
 public class RpcConnectManager {
 
-    private static final Logger log = LoggerFactory.getLogger(RpcConnectManager.class);
-    private static volatile RpcConnectManager RPC_CONNECT_MANAGER = new RpcConnectManager();
+    /**
+     * 单例
+     * volatile 禁止指令重排序
+     */
+    private static volatile RpcConnectManager RPC_CONNECT_MANAGER;
 
     /**
      * 一个连接的地址，对应一个世纪的业务处理器(client)
      */
-    private Map<InetSocketAddress, RpcClientHandler> connectedHandlerMap = new ConcurrentHashMap<>();
+    private Map<SocketAddress, RpcClientHandler> connectedHandlerMap = new ConcurrentHashMap<>();
 
     /**
      * 所有连接成功的地址 所对应的任务执行器列表;
@@ -56,16 +64,33 @@ public class RpcConnectManager {
 
     private Condition connectedCondition = connectedLock.newCondition();
 
-
     private long connectedTimeOutMills = 6000;
 
+
+    private AtomicInteger handlerIdx = new AtomicInteger(0);
+
+    @Getter
+    @Setter
     private volatile boolean isRunning = true;
 
     private RpcConnectManager() {
 
     }
 
+    /**
+     * DCL 双重校验
+     *
+     * @return
+     */
     public static RpcConnectManager getInstance() {
+        if (RPC_CONNECT_MANAGER == null) {
+            synchronized (RpcConnectManager.class) {
+                if (RPC_CONNECT_MANAGER == null) {
+                    RPC_CONNECT_MANAGER = new RpcConnectManager();
+                    return RPC_CONNECT_MANAGER;
+                }
+            }
+        }
         return RPC_CONNECT_MANAGER;
     }
     //1 .异步连接 线程池 真正的发起连接，连接失败监听，连接成功监听
@@ -87,7 +112,6 @@ public class RpcConnectManager {
      */
     public void updateConnectedServer(List<String> allServerAddress) {
         if (CollectionUtils.isEmpty(allServerAddress)) {
-            log.error("no available ServerAddress");
             //清楚所有的缓存信息;
             clearConnected();
             return;
@@ -125,7 +149,7 @@ public class RpcConnectManager {
         }
     }
 
-    private void connectAsync(InetSocketAddress remotePeer) {
+    private void connectAsync(SocketAddress remotePeer) {
         threadPoolExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -140,7 +164,7 @@ public class RpcConnectManager {
         });
     }
 
-    private void connect(final Bootstrap b, InetSocketAddress remotePeer) {
+    private void connect(final Bootstrap b, SocketAddress remotePeer) {
         //1 .建立连接
         final ChannelFuture channelFuture = b.connect(remotePeer);
         //2.连接失败的时候添加监听，清除资源后进行释放发起重连操作
@@ -174,7 +198,7 @@ public class RpcConnectManager {
      */
     private void addHandler(RpcClientHandler handler) {
         connectedHandlerList.add(handler);
-        InetSocketAddress remotePeer = (InetSocketAddress) handler.getRemotePeer();
+        SocketAddress remotePeer = (SocketAddress) handler.getRemotePeer();
         connectedHandlerMap.put(remotePeer, handler);
         //signalAvailableHandler 唤醒可用的业务执行器
         signalAvailableHandler();
@@ -202,7 +226,7 @@ public class RpcConnectManager {
         try {
             return connectedCondition.await(this.connectedTimeOutMills, TimeUnit.SECONDS);
         } finally {
-
+            connectedLock.unlock();
         }
     }
 
@@ -214,17 +238,29 @@ public class RpcConnectManager {
     private RpcClientHandler chooseHandler() {
         List<RpcClientHandler> hanlders = (CopyOnWriteArrayList<RpcClientHandler>) this.connectedHandlerList.clone();
         int size = hanlders.size();
+        /**
+         * 说明缓存中没有任何新的连接;
+         */
         while (isRunning && size <= 0) {
             try {
                 boolean available = waitingForAvailableHandler();
-                if(available){
-
+                if (available) {
+                    //重新获取新值;
+                    hanlders = (CopyOnWriteArrayList<RpcClientHandler>) this.connectedHandlerList.clone();
+                    size = hanlders.size();
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                //等待可用handler 期间被打断
+                log.error(" waiting for available node is interrupted");
+                throw new RuntimeException("no connect any services", e);
             }
         }
-        return null;
+        if (!isRunning) {
+            log.info("rpchandler has been closed");
+            return null;
+        }
+        int dataIndex = (handlerIdx.getAndAdd(0) + size) % size;
+        return connectedHandlerList.get(dataIndex);
     }
 
     /**
@@ -246,6 +282,38 @@ public class RpcConnectManager {
         connectedHandlerList.clear();
     }
 
-    public static void main(String[] args) {
+
+    /**
+     * 将线程资源优雅关闭
+     */
+    public void stop() {
+        isRunning = false;
+        for (int i = 0; i < connectedHandlerList.size(); i++) {
+            RpcClientHandler rpcClientHandler = connectedHandlerList.get(i);
+            rpcClientHandler.close();
+        }
+        //唤醒正在阻塞的请求获取handler的线程，并通过isRunning 返回null 将其释放;
+        signalAvailableHandler();
+        //关闭线程池;
+        threadPoolExecutor.shutdown();
+        //eventLoop安全关闭
+        eventLoopGroup.shutdownGracefully();
+    }
+
+
+    /**
+     * 发起重连
+     * 需要将对应的资源释放
+     *
+     * @param handler
+     * @param remotePeer
+     */
+    public void reconnect(final RpcClientHandler handler, final SocketAddress remotePeer) {
+        if (handler != null) {
+            handler.close();
+            connectedHandlerList.remove(handler);
+            connectedHandlerMap.remove(remotePeer);
+        }
+        connectAsync(remotePeer);
     }
 }
