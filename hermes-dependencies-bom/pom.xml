@@ -32,11 +32,6 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.newbiegroup</groupId>
-                <artifactId>hermes-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
                 <version>${netty.all.version}</version>
@@ -47,12 +42,7 @@
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>${fastjson.version}</version>
-            </dependency>
+
             <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -109,6 +99,12 @@
                 <version>3.1</version>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/cglib/cglib -->
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib</artifactId>
+                <version>3.3.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

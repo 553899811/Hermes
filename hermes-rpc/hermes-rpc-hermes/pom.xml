@@ -18,6 +18,10 @@
             <artifactId>hermes-common</artifactId>
             <version>${revision}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.newbiegroup</groupId>
+            <artifactId>hermes-remoting</artifactId>
+            <version>${revision}</version>
+        </dependency>
     </dependencies>
 </project>
