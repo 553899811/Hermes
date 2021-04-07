@@ -27,6 +27,14 @@
         <netty.all.version>4.1.52.Final</netty.all.version>
         <fastjson.version>1.2.73</fastjson.version>
         <guava.version>29.0-jre</guava.version>
+        <commons.lang3.version>3.11</commons.lang3.version>
+        <protostuff.version>1.7.2</protostuff.version>
+        <commons.collections.version>3.2.2</commons.collections.version>
+        <lombok.version>1.18.12</lombok.version>
+        <junit.version>4.13</junit.version>
+        <slf4j.log4j12.version>1.7.25</slf4j.log4j12.version>
+        <objenesis.version>3.1</objenesis.version>
+        <cglib.version>3.3.0</cglib.version>
     </properties>
 
     <dependencyManagement>
@@ -47,41 +55,41 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.11</version>
+                <version>${commons.lang3.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/io.protostuff/protostuff-core -->
             <dependency>
                 <groupId>io.protostuff</groupId>
                 <artifactId>protostuff-core</artifactId>
-                <version>1.7.2</version>
+                <version>${protostuff.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>io.protostuff</groupId>
                 <artifactId>protostuff-runtime</artifactId>
-                <version>1.7.2</version>
+                <version>${protostuff.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/commons-collections/commons-collections -->
             <dependency>
                 <groupId>commons-collections</groupId>
                 <artifactId>commons-collections</artifactId>
-                <version>3.2.2</version>
+                <version>${commons.collections.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.12</version>
+                <version>${lombok.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/junit/junit -->
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.13</version>
+                <version>${junit.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
@@ -89,21 +97,21 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-log4j12</artifactId>
-                <version>1.7.25</version>
+                <version>${slf4j.log4j12.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/org.objenesis/objenesis -->
             <dependency>
                 <groupId>org.objenesis</groupId>
                 <artifactId>objenesis</artifactId>
-                <version>3.1</version>
+                <version>${objenesis.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/cglib/cglib -->
             <dependency>
                 <groupId>cglib</groupId>
                 <artifactId>cglib</artifactId>
-                <version>3.3.0</version>
+                <version>${cglib.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
