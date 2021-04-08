@@ -74,17 +74,17 @@ public class RpcFuture implements Future<Object> {
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isCancelled() {
-        return false;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isDone() {
-        return false;
+        return sync.isDone();
     }
 
     @Override
