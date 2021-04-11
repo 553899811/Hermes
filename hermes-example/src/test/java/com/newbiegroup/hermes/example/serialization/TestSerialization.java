@@ -1,7 +1,7 @@
 package com.newbiegroup.hermes.example.serialization;
 
-import com.newbiegroup.hermes.example.rpc.Serialization.Student;
-import com.newbiegroup.hermes.example.rpc.Singletons.Singleton;
+import com.newbiegroup.hermes.example.rpcPrincipleTest.Singletons.Singleton;
+import com.newbiegroup.hermes.example.rpcPrincipleTest.Serialization.Student;
 import org.junit.Test;
 
 import java.io.FileInputStream;

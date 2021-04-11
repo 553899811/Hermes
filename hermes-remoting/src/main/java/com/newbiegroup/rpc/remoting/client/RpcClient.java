@@ -1,8 +1,11 @@
 package com.newbiegroup.rpc.remoting.client;
 
+import com.newbiegroup.rpc.remoting.client.proxy.RpcAsyncProxy;
 import com.newbiegroup.rpc.remoting.client.proxy.RpcProxyImpl;
 
 import java.lang.reflect.Proxy;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>ClassName:RPC客户端  </p>
@@ -19,31 +22,69 @@ public class RpcClient {
 
     private long timeout;
 
+    /**
+     * 本地缓存对象 - 同步
+     */
+    private final Map<Class<?>, Object> syncProxyInstanceMap = new ConcurrentHashMap<>();
+
+    /**
+     * 本地缓存对象 - 异步
+     */
+    private final Map<Class<?>, Object> asyncProxyInstanceMap = new ConcurrentHashMap<>();
+
+    private RpcConnectManager rpcConnectManager;
+
+    @SuppressWarnings("unchecked")
     public void initClient(String serverAddress, long timeout) {
         this.serverAddress = serverAddress;
         this.timeout = timeout;
+        this.rpcConnectManager = new RpcConnectManager();
         connect();
     }
 
     private void connect() {
-        RpcConnectManager.getInstance().connect(serverAddress);
+        this.rpcConnectManager.connect(serverAddress);
     }
 
     public void stop() {
-        RpcConnectManager.getInstance().stop();
+        this.rpcConnectManager.stop();
     }
 
     /**
-     * 同步调用;
+     * 同步调用方法
      *
      * @param interfaceClass
      * @param <T>
      * @return
      */
+    @SuppressWarnings("unchecked")
     public <T> T invokeSync(Class<T> interfaceClass) {
-        Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(),
-                new Class<?>[]{interfaceClass},
-                new RpcProxyImpl(interfaceClass, timeout));
-        return (T) proxy;
+        if (syncProxyInstanceMap.containsKey(interfaceClass)) {
+            return (T) syncProxyInstanceMap.get(interfaceClass);
+        } else {
+            Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+                    new Class<?>[]{interfaceClass},
+                    new RpcProxyImpl(rpcConnectManager, interfaceClass, timeout));
+            syncProxyInstanceMap.put(interfaceClass, proxy);
+            return (T) proxy;
+        }
+    }
+
+    /**
+     * 异步调用
+     *
+     * @param interfaceClass
+     * @param <T>
+     * @return
+     */
+    public <T> RpcAsyncProxy invokeAsync(Class<T> interfaceClass) {
+
+        if (asyncProxyInstanceMap.containsKey(interfaceClass)) {
+            return (RpcProxyImpl<T>) asyncProxyInstanceMap.get(interfaceClass);
+        } else {
+            RpcProxyImpl<T> rpcProxyImpl = new RpcProxyImpl<T>(rpcConnectManager, interfaceClass, timeout);
+            asyncProxyInstanceMap.put(interfaceClass, rpcProxyImpl);
+            return rpcProxyImpl;
+        }
     }
 }

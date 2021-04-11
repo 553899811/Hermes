@@ -22,6 +22,11 @@
     <dependencies>
         <dependency>
             <groupId>com.newbiegroup</groupId>
+            <artifactId>hermes-serialization-api</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.newbiegroup</groupId>
             <artifactId>hermes-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>

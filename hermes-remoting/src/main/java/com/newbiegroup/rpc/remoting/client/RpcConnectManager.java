@@ -47,7 +47,7 @@ public class RpcConnectManager {
     /**
      * 一个连接的地址，对应一个世纪的业务处理器(client)
      */
-    private Map<SocketAddress, RpcClientHandler> connectedHandlerMap = new ConcurrentHashMap<>();
+    private Map<InetSocketAddress, RpcClientHandler> connectedHandlerMap = new ConcurrentHashMap<>();
 
     /**
      * 所有连接成功的地址 所对应的任务执行器列表;
@@ -73,7 +73,7 @@ public class RpcConnectManager {
     @Setter
     private volatile boolean isRunning = true;
 
-    private RpcConnectManager() {
+    public RpcConnectManager() {
 
     }
 
@@ -149,7 +149,7 @@ public class RpcConnectManager {
         }
     }
 
-    private void connectAsync(SocketAddress remotePeer) {
+    private void connectAsync(InetSocketAddress remotePeer) {
         threadPoolExecutor.execute(new Runnable() {
             @Override
             public void run() {
@@ -164,7 +164,7 @@ public class RpcConnectManager {
         });
     }
 
-    private void connect(final Bootstrap b, SocketAddress remotePeer) {
+    private void connect(final Bootstrap b, InetSocketAddress remotePeer) {
         //1 .建立连接
         final ChannelFuture channelFuture = b.connect(remotePeer);
         //2.连接失败的时候添加监听，清除资源后进行释放发起重连操作
@@ -198,7 +198,7 @@ public class RpcConnectManager {
      */
     private void addHandler(RpcClientHandler handler) {
         connectedHandlerList.add(handler);
-        SocketAddress remotePeer = (SocketAddress) handler.getRemotePeer();
+        InetSocketAddress remotePeer = (InetSocketAddress) handler.getRemotePeer();
         connectedHandlerMap.put(remotePeer, handler);
         //signalAvailableHandler 唤醒可用的业务执行器
         signalAvailableHandler();
@@ -259,7 +259,7 @@ public class RpcConnectManager {
             log.info("rpchandler has been closed");
             return null;
         }
-        int dataIndex = (handlerIdx.getAndAdd(0) + size) % size;
+        int dataIndex = (handlerIdx.getAndAdd(1) + size) % size;
         return connectedHandlerList.get(dataIndex);
     }
 
@@ -308,7 +308,7 @@ public class RpcConnectManager {
      * @param handler
      * @param remotePeer
      */
-    public void reconnect(final RpcClientHandler handler, final SocketAddress remotePeer) {
+    public void reconnect(final RpcClientHandler handler, final InetSocketAddress remotePeer) {
         if (handler != null) {
             handler.close();
             connectedHandlerList.remove(handler);

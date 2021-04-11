@@ -56,7 +56,7 @@ public class RpcServer {
                         cp.addLast(new RpcServerHandler(handlerMap));
                     }
                 });
-        String[] array = serverAddress.split(";");
+        String[] array = serverAddress.split(":");
         String host = array[0];
         int port = Integer.parseInt(array[1]);
         ChannelFuture channelFuture = serverBootstrap.bind(host, port).sync();

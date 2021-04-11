@@ -1,6 +1,6 @@
 package com.newbiegroup.rpc.remoting.codec;
 
-import com.newbiegroup.serialization.ProtostuffSerialization;
+import com.newbiegroup.hermes.serialization.ProtostuffSerialization;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
