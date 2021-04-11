@@ -11,7 +11,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * <p>ClassName:  </p>
+ * <p>ClassName: RpcFuture 异步结果对象 （待完善，补充更多机制）</p>
  * <p>Description: </p>
  * <p>Company: </p>
  *
@@ -34,7 +34,10 @@ public class RpcFuture implements Future<Object> {
 
     private List<RpcCallBack> pendingCallbacks = new ArrayList<>();
 
-    private ThreadPoolExecutor threadPoolExecutor
+    /**
+     * 回调任务执行线程池
+     */
+    private ThreadPoolExecutor callBackExecutor
             = new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS, new ArrayBlockingQueue<>(1 << 16));
 
     /**
@@ -87,13 +90,91 @@ public class RpcFuture implements Future<Object> {
         return sync.isDone();
     }
 
+    /**
+     * @param response
+     */
+    public void done(RpcResponse response) {
+        this.response = response;
+        boolean success = sync.release(1);
+        if (success) {
+            invokeCallBacks();
+        }
+        long costTime = System.currentTimeMillis() - startTime;
+        if (TIME_THRESHOLD < costTime) {
+            log.warn("the rpc response time is too slow,request id = " + this.request.getRequestId() + "cost time:" + costTime);
+        }
+    }
+
+    /**
+     * 依次执行回调函数
+     */
+    private void invokeCallBacks() {
+        lock.lock();
+        try {
+            for (final RpcCallBack callBack : pendingCallbacks) {
+                runCallBack(callBack);
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void runCallBack(RpcCallBack callBack) {
+        final RpcResponse response = this.response;
+        callBackExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (response.getThrowable() == null) {
+                    callBack.success(response.getResult());
+                } else {
+                    callBack.failure(response.getThrowable());
+                }
+            }
+        });
+    }
+
+    public RpcFuture addCallBack(RpcCallBack callBack) {
+        lock.lock();
+        try {
+            if (isDone()) {
+                runCallBack(callBack);
+            } else {
+                this.pendingCallbacks.add(callBack);
+            }
+        } finally {
+            lock.unlock();
+        }
+        return this;
+    }
+
+    /**
+     * 何时调用get方法
+     *
+     * @return
+     * @throws InterruptedException
+     * @throws ExecutionException
+     */
     @Override
     public Object get() throws InterruptedException, ExecutionException {
+        sync.acquire(-1);
         return null;
     }
 
     @Override
     public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return null;
+        boolean success = sync.tryAcquireNanos(-1, unit.toNanos(timeout));
+        if (success) {
+            if (this.response != null) {
+                return this.response.getResult();
+            } else {
+                return null;
+            }
+        } else {
+            throw new RuntimeException("timeout exception requestId:" +
+                    this.request.getRequestId()
+                    + ",className:" + this.request.getClassName()
+                    + ",methodName:" + this.request.getMethodName());
+        }
+
     }
 }

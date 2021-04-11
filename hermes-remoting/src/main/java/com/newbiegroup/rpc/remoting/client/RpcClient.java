@@ -1,5 +1,9 @@
 package com.newbiegroup.rpc.remoting.client;
 
+import com.newbiegroup.rpc.remoting.client.proxy.RpcProxyImpl;
+
+import java.lang.reflect.Proxy;
+
 /**
  * <p>ClassName:RPC客户端  </p>
  * <p>Description: </p>
@@ -27,5 +31,19 @@ public class RpcClient {
 
     public void stop() {
         RpcConnectManager.getInstance().stop();
+    }
+
+    /**
+     * 同步调用;
+     *
+     * @param interfaceClass
+     * @param <T>
+     * @return
+     */
+    public <T> T invokeSync(Class<T> interfaceClass) {
+        Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+                new Class<?>[]{interfaceClass},
+                new RpcProxyImpl(interfaceClass, timeout));
+        return (T) proxy;
     }
 }

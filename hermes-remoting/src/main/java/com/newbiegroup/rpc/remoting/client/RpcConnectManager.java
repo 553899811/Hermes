@@ -235,7 +235,7 @@ public class RpcConnectManager {
      *
      * @return
      */
-    private RpcClientHandler chooseHandler() {
+    public RpcClientHandler chooseHandler() {
         List<RpcClientHandler> hanlders = (CopyOnWriteArrayList<RpcClientHandler>) this.connectedHandlerList.clone();
         int size = hanlders.size();
         /**
