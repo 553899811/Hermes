@@ -105,6 +105,10 @@ public class RpcConnectManager {
         updateConnectedServer(allServerAddress);
     }
 
+    public void connect(List<String> serverAddressList) {
+        updateConnectedServer(serverAddressList);
+    }
+
     /**
      * @param allServerAddress
      * @desc 更新地址缓存信息，并异步发起链接
@@ -114,6 +118,7 @@ public class RpcConnectManager {
         if (CollectionUtils.isEmpty(allServerAddress)) {
             //清楚所有的缓存信息;
             clearConnected();
+            log.error("no available server address");
             return;
         }
 
@@ -130,7 +135,7 @@ public class RpcConnectManager {
         }
         // 2. 调用建立连接方法，发起远程连接操作
         for (InetSocketAddress serverNodeAddress : newAllInetSocketAddress) {
-            if (!connectedHandlerMap.containsKey(serverNodeAddress)) {
+            if (!connectedHandlerMap.keySet().contains(serverNodeAddress)) {
                 connectAsync(serverNodeAddress);
             }
         }
@@ -150,7 +155,7 @@ public class RpcConnectManager {
     }
 
     private void connectAsync(InetSocketAddress remotePeer) {
-        threadPoolExecutor.execute(new Runnable() {
+        threadPoolExecutor.submit(new Runnable() {
             @Override
             public void run() {
                 Bootstrap b = new Bootstrap();
@@ -171,10 +176,14 @@ public class RpcConnectManager {
         channelFuture.channel().closeFuture().addListener(new ChannelFutureListener() {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
-                future.channel().eventLoop().schedule(() -> {
-                    clearConnected();
-                    //资源释放后 重新连接;
-                    connect(b, remotePeer);
+                future.channel().eventLoop().schedule(new Runnable() {
+                    @Override
+                    public void run() {
+                        log.warn(" connect fail, to reconnect! ");
+                        clearConnected();
+                        //资源释放后 重新连接;
+                        connect(b, remotePeer);
+                    }
                 }, 3, TimeUnit.SECONDS);
             }
         });
@@ -183,6 +192,7 @@ public class RpcConnectManager {
             @Override
             public void operationComplete(ChannelFuture future) throws Exception {
                 if (future.isSuccess()) {
+                    log.info("successfully connect to remote server, remote peer = " + remotePeer);
                     RpcClientHandler handler = future.channel().pipeline().get(RpcClientHandler.class);
                     addHandler(handler);
                 }
@@ -198,7 +208,7 @@ public class RpcConnectManager {
      */
     private void addHandler(RpcClientHandler handler) {
         connectedHandlerList.add(handler);
-        InetSocketAddress remotePeer = (InetSocketAddress) handler.getRemotePeer();
+        InetSocketAddress remotePeer = (InetSocketAddress) handler.getChannel().remoteAddress();
         connectedHandlerMap.put(remotePeer, handler);
         //signalAvailableHandler 唤醒可用的业务执行器
         signalAvailableHandler();
@@ -210,7 +220,7 @@ public class RpcConnectManager {
     private void signalAvailableHandler() {
         connectedLock.lock();
         try {
-            connectedCondition.notifyAll();
+            connectedCondition.signalAll();
         } finally {
             connectedLock.unlock();
         }
@@ -224,7 +234,7 @@ public class RpcConnectManager {
     private boolean waitingForAvailableHandler() throws InterruptedException {
         connectedLock.lock();
         try {
-            return connectedCondition.await(this.connectedTimeOutMills, TimeUnit.SECONDS);
+            return connectedCondition.await(this.connectedTimeOutMills, TimeUnit.MICROSECONDS);
         } finally {
             connectedLock.unlock();
         }
@@ -260,7 +270,7 @@ public class RpcConnectManager {
             return null;
         }
         int dataIndex = (handlerIdx.getAndAdd(1) + size) % size;
-        return connectedHandlerList.get(dataIndex);
+        return hanlders.get(dataIndex);
     }
 
     /**

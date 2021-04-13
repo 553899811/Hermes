@@ -58,11 +58,11 @@ public class RpcFuture implements Future<Object> {
         private final int pending = 0;
 
         protected boolean tryAcquire(int acquire) {
-            return getState() == done ? true : false;
+            return getState() == done;
         }
 
         protected boolean tryRelease(int release) {
-            if (getState() == release) {
+            if (getState() == pending) {
                 if (compareAndSetState(pending, done)) {
                     return true;
                 }
@@ -157,7 +157,11 @@ public class RpcFuture implements Future<Object> {
     @Override
     public Object get() throws InterruptedException, ExecutionException {
         sync.acquire(-1);
-        return null;
+        if (this.response != null) {
+            return this.response.getResult();
+        } else {
+            return null;
+        }
     }
 
     @Override

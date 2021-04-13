@@ -49,23 +49,22 @@ public class RpcProxyImpl<T> implements RpcAsyncProxy, InvocationHandler {
         request.setClassName(this.clazz.getName());
         request.setMethodName(funcName);
         request.setParameters(args);
-
+        //	TODO: 对应的方法参数类型应该通过 类类型 + 方法名称 通过反射得到parameterTypes
         Class<?>[] parameterTypes = new Class[args.length];
-        for (int i = 0; i < args.length; i++) {
+        for(int i = 0; i < args.length; i++) {
             parameterTypes[i] = getClassType(args[i]);
         }
         request.setParameterTypes(parameterTypes);
-
-        //2.选择一个合适的Client处理器
-        RpcClientHandler rpcClientHandler = this.rpcConnectManager.chooseHandler();
-        RpcFuture future = rpcClientHandler.sendRequest(request);
-
+        //2.选择一个合适的Client任务处理器
+//		RpcClientHandler handler = RpcConnectManager.getInstance().chooseHandler();
+        RpcClientHandler handler = this.rpcConnectManager.chooseHandler();
+        RpcFuture future = handler.sendRequest(request);
         return future;
     }
 
     private Class<?> getClassType(Object arg) {
         Class<?> classType = arg.getClass();
-        String typeName = classType.getTypeName();
+        String typeName = classType.getName();
         if (typeName.equals("java.lang.Integer")) {
             return Integer.TYPE;
         } else if (typeName.equals("java.lang.Long")) {

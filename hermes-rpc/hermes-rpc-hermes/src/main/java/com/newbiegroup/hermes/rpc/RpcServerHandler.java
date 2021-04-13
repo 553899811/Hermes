@@ -52,6 +52,7 @@ public class RpcServerHandler extends SimpleChannelInboundHandler<RpcRequest> {
                     Object result = handle(rpcRequest);
                     rpcResponse.setResult(result);
                 } catch (Throwable t) {
+                    rpcResponse.setThrowable(t);
                     log.error("rpc server handle request throwable:" + t);
                 }
 

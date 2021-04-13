@@ -52,8 +52,13 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse o) throws Exception {
-
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse rpcResponse) throws Exception {
+        String requestId = rpcResponse.getRequestId();
+        RpcFuture rpcFuture = pendingRpcTable.get(requestId);
+        if (rpcFuture != null) {
+            pendingRpcTable.remove(requestId);
+            rpcFuture.done(rpcResponse);
+        }
     }
 
     public Channel getChannel() {
@@ -85,6 +90,6 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
         RpcFuture future = new RpcFuture(request);
         pendingRpcTable.put(request.getRequestId(), future);
         channel.writeAndFlush(request);
-        return null;
+        return future;
     }
 }

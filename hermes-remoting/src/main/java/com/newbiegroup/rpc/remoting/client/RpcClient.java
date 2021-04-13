@@ -4,6 +4,7 @@ import com.newbiegroup.rpc.remoting.client.proxy.RpcAsyncProxy;
 import com.newbiegroup.rpc.remoting.client.proxy.RpcProxyImpl;
 
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RpcClient {
 
     private String serverAddress;
+
+    private List<String> serverAddressList;
 
     private long timeout;
 
@@ -42,8 +45,18 @@ public class RpcClient {
         connect();
     }
 
+    public <T> T initClient(List<String> serverAddressList, long timeout, Class<T> interfaceClass) {
+        this.serverAddressList = serverAddressList;
+        this.timeout = timeout;
+        this.rpcConnectManager = new RpcConnectManager();
+        this.rpcConnectManager.connect(serverAddressList);
+        return (T) Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+                new Class<?>[]{interfaceClass},
+                new RpcProxyImpl<>(rpcConnectManager, interfaceClass, timeout));
+    }
+
     private void connect() {
-        this.rpcConnectManager.connect(serverAddress);
+        this.rpcConnectManager.connect(this.serverAddress);
     }
 
     public void stop() {
@@ -62,7 +75,8 @@ public class RpcClient {
         if (syncProxyInstanceMap.containsKey(interfaceClass)) {
             return (T) syncProxyInstanceMap.get(interfaceClass);
         } else {
-            Object proxy = Proxy.newProxyInstance(interfaceClass.getClassLoader(),
+            Object proxy = Proxy.newProxyInstance(
+                    interfaceClass.getClassLoader(),
                     new Class<?>[]{interfaceClass},
                     new RpcProxyImpl(rpcConnectManager, interfaceClass, timeout));
             syncProxyInstanceMap.put(interfaceClass, proxy);
@@ -82,7 +96,8 @@ public class RpcClient {
         if (asyncProxyInstanceMap.containsKey(interfaceClass)) {
             return (RpcProxyImpl<T>) asyncProxyInstanceMap.get(interfaceClass);
         } else {
-            RpcProxyImpl<T> rpcProxyImpl = new RpcProxyImpl<T>(rpcConnectManager, interfaceClass, timeout);
+            RpcProxyImpl<T> rpcProxyImpl = new RpcProxyImpl<T>(
+                    rpcConnectManager, interfaceClass, timeout);
             asyncProxyInstanceMap.put(interfaceClass, rpcProxyImpl);
             return rpcProxyImpl;
         }
