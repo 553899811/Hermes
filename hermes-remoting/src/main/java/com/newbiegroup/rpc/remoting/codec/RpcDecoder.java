@@ -43,7 +43,8 @@ public class RpcDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[dataLength];
         in.readBytes(data);
         //解码操作 返回指定的对象
-        Object obj = ProtostuffSerialization.deserialize(data, genericClass);
+        ProtostuffSerialization serialization=new ProtostuffSerialization();
+        Object obj = serialization.deserialize(data, genericClass);
         //填充到buffer中，传播给下游handler做实际的处理;
         out.add(obj);
     }

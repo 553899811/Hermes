@@ -37,7 +37,7 @@ public class ConsumerStarter {
         System.err.println("result2: " + result2);
     }
 
-    public static void main(String[] args) {
-        sync();
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+        async();
     }
 }

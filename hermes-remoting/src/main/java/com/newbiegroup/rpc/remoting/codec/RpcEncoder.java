@@ -37,9 +37,10 @@ public class RpcEncoder extends MessageToByteEncoder<Object> {
      */
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
-        if (genericClass.isInstance(msg)) {
-            byte[] data = ProtostuffSerialization.serialize(msg);
 
+        if (genericClass.isInstance(msg)) {
+            ProtostuffSerialization serialization=new ProtostuffSerialization();
+            byte[] data = serialization.serialize(msg);
             //消息分为：1.包头(数据包长度) 2.包体(数据包内容)
             out.writeInt(data.length);
             out.writeBytes(data);

@@ -17,6 +17,7 @@
         <module>hermes-remoting</module>
         <module>hermes-serialization</module>
         <module>hermes-common</module>
+        <module>hermes-registry</module>
     </modules>
 
     <properties>
