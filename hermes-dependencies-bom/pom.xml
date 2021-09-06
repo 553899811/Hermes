@@ -35,6 +35,7 @@
         <slf4j.log4j12.version>1.7.25</slf4j.log4j12.version>
         <objenesis.version>3.1</objenesis.version>
         <cglib.version>3.3.0</cglib.version>
+        <curator.version>4.2.0</curator.version>
     </properties>
 
     <dependencyManagement>
@@ -113,6 +114,29 @@
                 <artifactId>cglib</artifactId>
                 <version>${cglib.version}</version>
             </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-recipes -->
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-framework -->
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.curator/curator-client -->
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>${curator.version}</version>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
